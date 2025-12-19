@@ -25,8 +25,16 @@
             this.navPath = null;
             this.observer = null;
 
+            // Read heading levels from data attribute
+            const headingLevelsAttr = container.dataset.headingLevels || 'h2,h3,h4';
+            this.headingLevels = headingLevelsAttr.split(',').filter(Boolean);
+
+            // Read custom selectors from data attribute
+            this.customSelectors = container.dataset.customSelectors || '';
+
             this.init();
         }
+
 
         init() {
             // Find all headings on the page (excluding those inside this nav)
@@ -57,15 +65,53 @@
         }
 
         findHeadings() {
-            // Find all h2, h3, h4 headings
-            const allHeadings = document.querySelectorAll('h2, h3, h4');
+            // Build selector from configured heading levels
+            const headingSelector = this.headingLevels.join(', ');
 
-            // Filter out headings inside the scroll path nav itself
-            return [...allHeadings].filter((heading) => {
-                return !heading.closest('.scrollpath-nav') &&
-                    !heading.closest('.scrollpath-nav-editor');
+            // Find all configured headings
+            let allElements = [];
+
+            if (headingSelector) {
+                allElements = [...document.querySelectorAll(headingSelector)];
+            }
+
+            // Add custom selector elements if provided
+            if (this.customSelectors) {
+                const customSelectorList = this.customSelectors
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(Boolean);
+
+                customSelectorList.forEach(selector => {
+                    try {
+                        const customElements = document.querySelectorAll(selector);
+                        customElements.forEach(el => {
+                            // Avoid duplicates
+                            if (!allElements.includes(el)) {
+                                allElements.push(el);
+                            }
+                        });
+                    } catch (e) {
+                        console.warn(`ScrollPathNav: Invalid custom selector "${selector}"`, e);
+                    }
+                });
+            }
+
+            // Sort elements by their position in the document
+            allElements.sort((a, b) => {
+                const position = a.compareDocumentPosition(b);
+                if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+                if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+                return 0;
+            });
+
+            // Filter out elements inside the scroll path nav itself
+            return allElements.filter((element) => {
+                return !element.closest('.scrollpath-nav') &&
+                    !element.closest('.scrollpath-nav-editor');
             });
         }
+
 
         ensureHeadingIds(headings) {
             const usedIds = new Set();
@@ -103,86 +149,98 @@
 
             // Track the current parent elements for each level
             const parents = {
-                2: rootList,
+                1: rootList,
+                2: null,
                 3: null,
                 4: null,
+                5: null,
+                6: null,
             };
 
-            let lastLevel = 2;
+            let lastLevel = 1;
 
-            headings.forEach((heading) => {
-                const level = parseInt(heading.tagName.charAt(1), 10);
+            headings.forEach((element) => {
+                // Determine the level: for headings use tag level, for custom selectors default to level 2
+                let level;
+                const tagName = element.tagName.toLowerCase();
+                if (/^h[1-6]$/.test(tagName)) {
+                    level = parseInt(tagName.charAt(1), 10);
+                } else {
+                    // Custom selector elements are treated as level 2 (top level)
+                    level = 2;
+                }
+
                 const item = document.createElement('li');
                 item.className = 'scrollpath-nav__item';
                 item.setAttribute('data-level', level);
-                item.setAttribute('data-target', heading.id);
+                item.setAttribute('data-target', element.id);
 
                 const link = document.createElement('a');
                 link.className = 'scrollpath-nav__link';
-                link.href = `#${heading.id}`;
-                link.textContent = heading.textContent;
+                link.href = `#${element.id}`;
+                link.textContent = element.textContent;
 
                 item.appendChild(link);
 
-                // Determine where to append this item
-                if (level === 2) {
-                    // Top level - always append to root
+                // For h1 or elements treated as top-level, just append to root
+                if (level === 1) {
                     rootList.appendChild(item);
-                    parents[2] = rootList;
+                    parents[1] = rootList;
+                    parents[2] = null;
                     parents[3] = null;
                     parents[4] = null;
-                } else if (level === 3) {
-                    // Find or create a nested list under the last h2
-                    const lastH2Item = rootList.querySelector('.scrollpath-nav__item[data-level="2"]:last-of-type') ||
-                        rootList.lastElementChild;
+                    parents[5] = null;
+                    parents[6] = null;
+                } else if (level === 2) {
+                    // Level 2 - find parent under h1 if exists, otherwise root
+                    const lastH1Item = rootList.querySelector('.scrollpath-nav__item[data-level="1"]:last-of-type');
 
-                    if (lastH2Item) {
-                        let nestedList = lastH2Item.querySelector(':scope > .scrollpath-nav__list');
+                    if (lastH1Item) {
+                        let nestedList = lastH1Item.querySelector(':scope > .scrollpath-nav__list');
                         if (!nestedList) {
                             nestedList = document.createElement('ul');
                             nestedList.className = 'scrollpath-nav__list';
-                            lastH2Item.appendChild(nestedList);
+                            lastH1Item.appendChild(nestedList);
                         }
                         nestedList.appendChild(item);
-                        parents[3] = nestedList;
-                        parents[4] = null;
+                        parents[2] = nestedList;
                     } else {
                         rootList.appendChild(item);
+                        parents[2] = rootList;
                     }
-                } else if (level === 4) {
-                    // Find or create a nested list under the last h3
-                    let targetParent = parents[3];
+                    parents[3] = null;
+                    parents[4] = null;
+                    parents[5] = null;
+                    parents[6] = null;
+                } else {
+                    // For levels 3-6, find parent at level-1
+                    const parentLevel = level - 1;
+                    let targetParent = parents[parentLevel];
 
                     if (targetParent) {
-                        const lastH3Item = targetParent.querySelector('.scrollpath-nav__item[data-level="3"]:last-of-type') ||
+                        const lastParentItem = targetParent.querySelector(`.scrollpath-nav__item[data-level="${parentLevel}"]:last-of-type`) ||
                             targetParent.lastElementChild;
 
-                        if (lastH3Item) {
-                            let nestedList = lastH3Item.querySelector(':scope > .scrollpath-nav__list');
+                        if (lastParentItem) {
+                            let nestedList = lastParentItem.querySelector(':scope > .scrollpath-nav__list');
                             if (!nestedList) {
                                 nestedList = document.createElement('ul');
                                 nestedList.className = 'scrollpath-nav__list';
-                                lastH3Item.appendChild(nestedList);
+                                lastParentItem.appendChild(nestedList);
                             }
                             nestedList.appendChild(item);
-                            parents[4] = nestedList;
+                            parents[level] = nestedList;
                         } else {
                             targetParent.appendChild(item);
                         }
                     } else {
-                        // No h3 parent, append to root or last h2
-                        const lastItem = rootList.lastElementChild;
-                        if (lastItem) {
-                            let nestedList = lastItem.querySelector(':scope > .scrollpath-nav__list');
-                            if (!nestedList) {
-                                nestedList = document.createElement('ul');
-                                nestedList.className = 'scrollpath-nav__list';
-                                lastItem.appendChild(nestedList);
-                            }
-                            nestedList.appendChild(item);
-                        } else {
-                            rootList.appendChild(item);
-                        }
+                        // No parent at expected level, append to root
+                        rootList.appendChild(item);
+                    }
+
+                    // Clear child levels
+                    for (let i = level + 1; i <= 6; i++) {
+                        parents[i] = null;
                     }
                 }
 
@@ -201,6 +259,7 @@
                 return { listItem, anchor, target };
             }).filter((item) => item.target);
         }
+
 
         setupSvgPath() {
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');

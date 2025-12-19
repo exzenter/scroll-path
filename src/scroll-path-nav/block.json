@@ -11,9 +11,40 @@
         "navigation",
         "scroll",
         "toc",
+        "path",
         "table of contents",
         "headings"
     ],
+    "attributes": {
+        "includeH1": {
+            "type": "boolean",
+            "default": false
+        },
+        "includeH2": {
+            "type": "boolean",
+            "default": true
+        },
+        "includeH3": {
+            "type": "boolean",
+            "default": true
+        },
+        "includeH4": {
+            "type": "boolean",
+            "default": true
+        },
+        "includeH5": {
+            "type": "boolean",
+            "default": false
+        },
+        "includeH6": {
+            "type": "boolean",
+            "default": false
+        },
+        "customSelectors": {
+            "type": "string",
+            "default": ""
+        }
+    },
     "supports": {
         "html": false,
         "align": [

@@ -1,8 +1,29 @@
 import { useBlockProps } from '@wordpress/block-editor';
 
-export default function save() {
+export default function save({ attributes }) {
+    const {
+        includeH1,
+        includeH2,
+        includeH3,
+        includeH4,
+        includeH5,
+        includeH6,
+        customSelectors,
+    } = attributes;
+
+    // Build heading selector from enabled levels
+    const headingLevels = [];
+    if (includeH1) headingLevels.push('h1');
+    if (includeH2) headingLevels.push('h2');
+    if (includeH3) headingLevels.push('h3');
+    if (includeH4) headingLevels.push('h4');
+    if (includeH5) headingLevels.push('h5');
+    if (includeH6) headingLevels.push('h6');
+
     const blockProps = useBlockProps.save({
         className: 'scrollpath-nav',
+        'data-heading-levels': headingLevels.join(','),
+        'data-custom-selectors': customSelectors || '',
     });
 
     return (
