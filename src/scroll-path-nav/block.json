@@ -44,6 +44,10 @@
             "type": "string",
             "default": ""
         },
+        "excludeSelectors": {
+            "type": "string",
+            "default": ""
+        },
         "viewportTopMargin": {
             "type": "number",
             "default": 10

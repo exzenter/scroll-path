@@ -12,6 +12,7 @@ export default function Edit({ attributes, setAttributes }) {
         includeH5,
         includeH6,
         customSelectors,
+        excludeSelectors,
         viewportTopMargin,
         viewportBottomMargin,
         sectionBasedDetection,
@@ -182,11 +183,18 @@ export default function Edit({ attributes, setAttributes }) {
                 </PanelBody>
                 <PanelBody title="Custom Selectors" initialOpen={false}>
                     <TextControl
-                        label="Additional Selectors"
-                        help="Enter CSS selectors (class names or IDs) to include in the navigation. Separate multiple selectors with commas. Example: .my-section, #intro, .custom-heading"
+                        label="Include Selectors"
+                        help="CSS selectors to include in the navigation. Separate with commas. Example: .my-section, #intro"
                         value={customSelectors}
                         onChange={(value) => setAttributes({ customSelectors: value })}
                         placeholder=".my-class, #my-id"
+                    />
+                    <TextControl
+                        label="Exclude Selectors"
+                        help="CSS selectors to exclude from the navigation. Any heading matching these selectors will be hidden. Example: .no-nav, #skip-this"
+                        value={excludeSelectors}
+                        onChange={(value) => setAttributes({ excludeSelectors: value })}
+                        placeholder=".no-nav, #hidden-section"
                     />
                 </PanelBody>
                 <PanelBody title="Path Styling" initialOpen={true}>

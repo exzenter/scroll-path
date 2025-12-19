@@ -33,6 +33,9 @@
             // Read custom selectors from data attribute
             this.customSelectors = container.dataset.customSelectors || '';
 
+            // Read exclude selectors from data attribute
+            this.excludeSelectors = container.dataset.excludeSelectors || '';
+
             // Read viewport margin settings from data attributes
             this.viewportTopMargin = parseInt(container.dataset.viewportTopMargin, 10) || 10;
             this.viewportBottomMargin = parseInt(container.dataset.viewportBottomMargin, 10) || 10;
@@ -172,10 +175,31 @@
             });
 
             // Filter out elements inside the scroll path nav itself
-            return allElements.filter((element) => {
+            allElements = allElements.filter((element) => {
                 return !element.closest('.scrollpath-nav') &&
                     !element.closest('.scrollpath-nav-editor');
             });
+
+            // Filter out excluded elements
+            if (this.excludeSelectors) {
+                const excludeSelectorList = this.excludeSelectors
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(Boolean);
+
+                allElements = allElements.filter(element => {
+                    return !excludeSelectorList.some(selector => {
+                        try {
+                            return element.matches(selector) || element.closest(selector);
+                        } catch (e) {
+                            console.warn(`ScrollPathNav: Invalid exclude selector "${selector}"`, e);
+                            return false;
+                        }
+                    });
+                });
+            }
+
+            return allElements;
         }
 
         findHeadingsForManualEntries() {
@@ -587,34 +611,122 @@
             });
 
             if (someElsAreVisible() && pathStart < pathEnd) {
-                // For non-solid line styles, we need a different approach
+                const visibleLength = pathEnd - pathStart;
+
                 if (this.pathLineStyle === 'solid') {
-                    const dashArray = `1 ${pathStart} ${pathEnd - pathStart} ${pathLength}`;
+                    // For solid lines, use the existing dasharray trick
+                    const dashArray = `1 ${pathStart} ${visibleLength} ${pathLength}`;
                     this.navPath.style.setProperty('stroke-dashoffset', '1');
                     this.navPath.style.setProperty('stroke-dasharray', dashArray);
                 } else {
-                    // For dashed/dotted, use clip-path or mask approach
-                    // We'll use a gradient mask approach via CSS
+                    // For dashed/dotted, we need a different approach
+                    // Create the pattern dasharray
+                    let patternDash, patternGap;
+                    if (this.pathLineStyle === 'dashed') {
+                        patternDash = 8;
+                        patternGap = 4;
+                    } else { // dotted
+                        patternDash = 2;
+                        patternGap = 4;
+                    }
+
+                    // Build a dasharray that:
+                    // 1. Is invisible for the first pathStart length
+                    // 2. Shows the pattern for the visible length
+                    // 3. Is invisible for the rest
+
+                    // Calculate how many pattern cycles fit in the visible section
+                    const patternLength = patternDash + patternGap;
+                    const patternCycles = Math.ceil(visibleLength / patternLength);
+
+                    // Build the dash array: gap first (up to pathStart), then pattern, then gap (rest)
+                    // The trick is: start with offset and use a custom pattern
+
+                    // Simple approach: set dasharray for pattern, use dashoffset to skip to visible area
+                    // But also need to clip the end - we'll use a gradient mask via CSS
+
+                    this.navPath.style.setProperty('stroke-dasharray', `${patternDash} ${patternGap}`);
+                    this.navPath.style.setProperty('stroke-dashoffset', `${-pathStart}`);
+
+                    // Use a linear gradient mask to clip the visible portion
+                    // This requires the SVG to have proper support - we'll set CSS custom properties
                     const startPercent = (pathStart / pathLength) * 100;
                     const endPercent = (pathEnd / pathLength) * 100;
-                    this.navPath.style.setProperty('--path-start', `${startPercent}%`);
-                    this.navPath.style.setProperty('--path-end', `${endPercent}%`);
-                    // Reset dasharray to the line style
-                    if (this.pathLineStyle === 'dashed') {
-                        this.navPath.style.setProperty('stroke-dasharray', '8 4');
-                    } else if (this.pathLineStyle === 'dotted') {
-                        this.navPath.style.setProperty('stroke-dasharray', '2 4');
-                    }
-                    this.navPath.style.setProperty('stroke-dashoffset', `-${pathStart}`);
-                    // Clip the visible portion
-                    const visibleLength = pathEnd - pathStart;
-                    this.navPath.style.setProperty('stroke-dasharray',
-                        this.pathLineStyle === 'dashed' ? `8 4` : `2 4`);
+
+                    // Apply clip using a mask - but since SVG gradients need definition, 
+                    // we'll use path length manipulation instead
+                    // Set the path with limited stroke length
+                    this.navPath.style.setProperty('--visible-start', `${startPercent}%`);
+                    this.navPath.style.setProperty('--visible-end', `${endPercent}%`);
+
+                    // Actually, the cleanest solution for dashed/dotted is to create/reuse 
+                    // a second path that clips the visible portion. Let's do that.
+                    this.syncPatternedPath(pathStart, pathEnd, patternDash, patternGap);
                 }
                 this.navPath.style.setProperty('opacity', String(this.pathOpacity / 100));
             } else {
                 this.navPath.style.setProperty('opacity', '0');
+                // Also hide any overlay path
+                if (this.overlayPath) {
+                    this.overlayPath.style.setProperty('opacity', '0');
+                }
             }
+        }
+
+        syncPatternedPath(pathStart, pathEnd, patternDash, patternGap) {
+            // For dashed/dotted lines, we use two paths:
+            // 1. The main path is hidden (opacity 0)
+            // 2. An overlay path clips the visible portion with the pattern
+
+            // Create overlay path if it doesn't exist
+            if (!this.overlayPath) {
+                const svg = this.navPath.parentElement;
+                this.overlayPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                this.overlayPath.setAttribute('class', 'scrollpath-nav__path scrollpath-nav__path--overlay');
+                this.overlayPath.style.stroke = this.pathColor;
+                this.overlayPath.style.strokeWidth = `${this.pathWidth}px`;
+                this.overlayPath.style.fill = 'none';
+                this.overlayPath.style.strokeLinecap = 'round';
+                svg.appendChild(this.overlayPath);
+            }
+
+            // Copy the path data
+            this.overlayPath.setAttribute('d', this.navPath.getAttribute('d'));
+
+            // Apply the pattern
+            this.overlayPath.style.setProperty('stroke-dasharray', `${patternDash} ${patternGap}`);
+
+            // Use a trick: combine pattern with visibility masking
+            // We need to show only from pathStart to pathEnd
+            const pathLength = this.navPath.getTotalLength();
+            const visibleLength = pathEnd - pathStart;
+
+            // The dashoffset positions where the pattern starts
+            // We also need to cut off at the end
+            this.overlayPath.style.setProperty('stroke-dashoffset', `${-pathStart}`);
+
+            // To clip the end, we use pathLength attribute
+            this.overlayPath.setAttribute('pathLength', pathLength);
+            this.overlayPath.style.setProperty('stroke-dasharray', `${patternDash} ${patternGap}`);
+
+            // Apply additional clipping using mask
+            // Actually, let's use a simpler approach: set pathLength on overlay and use specific values
+            // We'll create distinct dasharray that respects the visible bounds
+
+            // Hide the main path, show overlay
+            this.navPath.style.setProperty('opacity', '0');
+            this.overlayPath.style.setProperty('opacity', String(this.pathOpacity / 100));
+
+            // For clipping the end, we use a large gap after the visible area
+            // Create a custom dasharray: invisible gap, then pattern for visible length, then large gap
+            const restLength = pathLength - pathEnd;
+
+            // Pattern: [gap to pathStart] [pattern repeating for visibleLength] [gap for rest]
+            // Since dasharray alternates, we start with a gap
+            const fullDashArray = `0 ${pathStart} ` + `${patternDash} ${patternGap} `.repeat(Math.ceil(visibleLength / (patternDash + patternGap))) + `0 ${restLength + pathLength}`;
+
+            this.overlayPath.style.setProperty('stroke-dasharray', fullDashArray);
+            this.overlayPath.style.setProperty('stroke-dashoffset', '0');
         }
 
         setupSectionBasedDetection() {

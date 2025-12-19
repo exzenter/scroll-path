@@ -61,13 +61,19 @@ For complete control over navigation entries, use Editor Mode:
 
 ### Custom Selectors
 
-You can also include elements that aren't headings by adding custom CSS selectors:
+**Include Selectors** - Add elements that aren't headings to the navigation:
 
 ```
 .my-section, #intro, .custom-heading
 ```
 
-This will include any elements matching those selectors in the navigation.
+**Exclude Selectors** - Hide specific elements from the navigation:
+
+```
+.no-nav, #skip-this, .private-heading
+```
+
+Any heading matching the exclude selectors (or inside a matching parent) will be hidden from the navigation.
 
 ### Path Styling
 
