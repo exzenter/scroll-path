@@ -22,6 +22,8 @@ export default function save({ attributes }) {
         lineHeight,
         useTitleAttribute,
         useCustomLabel,
+        editorModeEnabled,
+        manualEntries,
     } = attributes;
 
     // Build heading selector from enabled levels
@@ -32,6 +34,11 @@ export default function save({ attributes }) {
     if (includeH4) headingLevels.push('h4');
     if (includeH5) headingLevels.push('h5');
     if (includeH6) headingLevels.push('h6');
+
+    // Filter manual entries to only include enabled ones
+    const enabledManualEntries = editorModeEnabled
+        ? manualEntries.filter(entry => entry.enabled)
+        : [];
 
     const blockProps = useBlockProps.save({
         className: 'scrollpath-nav',
@@ -50,6 +57,8 @@ export default function save({ attributes }) {
         'data-line-height': lineHeight ?? 2,
         'data-use-title-attribute': useTitleAttribute ? 'true' : 'false',
         'data-use-custom-label': useCustomLabel ? 'true' : 'false',
+        'data-editor-mode': editorModeEnabled ? 'true' : 'false',
+        'data-manual-entries': editorModeEnabled ? JSON.stringify(enabledManualEntries) : '',
     });
 
     return (
@@ -58,3 +67,4 @@ export default function save({ attributes }) {
         </nav>
     );
 }
+

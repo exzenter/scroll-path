@@ -95,6 +95,14 @@
         "useCustomLabel": {
             "type": "boolean",
             "default": false
+        },
+        "editorModeEnabled": {
+            "type": "boolean",
+            "default": false
+        },
+        "manualEntries": {
+            "type": "array",
+            "default": []
         }
     },
     "supports": {

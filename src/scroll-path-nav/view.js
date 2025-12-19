@@ -62,6 +62,17 @@
             // Read use custom label setting
             this.useCustomLabel = container.dataset.useCustomLabel === 'true';
 
+            // Read editor mode settings
+            this.editorModeEnabled = container.dataset.editorMode === 'true';
+            this.manualEntries = [];
+            if (this.editorModeEnabled && container.dataset.manualEntries) {
+                try {
+                    this.manualEntries = JSON.parse(container.dataset.manualEntries);
+                } catch (e) {
+                    console.warn('ScrollPathNav: Failed to parse manual entries', e);
+                }
+            }
+
             this.init();
         }
 
@@ -74,19 +85,33 @@
             this.container.style.setProperty('--scrollpath-font-size', `${this.fontSize}px`);
             this.container.style.setProperty('--scrollpath-line-height', this.lineHeight);
 
-            // Find all headings on the page (excluding those inside this nav)
-            this.headings = this.findHeadings();
+            // Check if editor mode is enabled with manual entries
+            if (this.editorModeEnabled && this.manualEntries.length > 0) {
+                // Use manual entries instead of auto-detecting
+                this.headings = this.findHeadingsForManualEntries();
 
-            if (this.headings.length === 0) {
-                this.container.innerHTML = '<p class="scrollpath-nav__empty">No headings found on this page.</p>';
-                return;
+                if (this.headings.length === 0) {
+                    this.container.innerHTML = '<p class="scrollpath-nav__empty">No matching headings found for manual entries.</p>';
+                    return;
+                }
+
+                // Build navigation from manual entries
+                this.buildNavigationFromManualEntries();
+            } else {
+                // Find all headings on the page (excluding those inside this nav)
+                this.headings = this.findHeadings();
+
+                if (this.headings.length === 0) {
+                    this.container.innerHTML = '<p class="scrollpath-nav__empty">No headings found on this page.</p>';
+                    return;
+                }
+
+                // Ensure all headings have IDs
+                this.ensureHeadingIds(this.headings);
+
+                // Build the navigation structure
+                this.buildNavigation(this.headings);
             }
-
-            // Ensure all headings have IDs
-            this.ensureHeadingIds(this.headings);
-
-            // Build the navigation structure
-            this.buildNavigation(this.headings);
 
             // Setup the SVG path
             this.setupSvgPath();
@@ -151,6 +176,158 @@
                 return !element.closest('.scrollpath-nav') &&
                     !element.closest('.scrollpath-nav-editor');
             });
+        }
+
+        findHeadingsForManualEntries() {
+            // Find DOM elements that match the manual entries by ID
+            const headings = [];
+
+            this.manualEntries.forEach(entry => {
+                // Try to find by ID first
+                let element = document.getElementById(entry.id);
+
+                // If not found, try to find by generating ID from label
+                if (!element) {
+                    const generatedId = entry.label
+                        .toLowerCase()
+                        .trim()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-|-$/g, '');
+                    element = document.getElementById(generatedId);
+                }
+
+                // If still not found, try to find heading with matching text
+                if (!element) {
+                    const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                    for (const h of allHeadings) {
+                        if (h.textContent.trim() === entry.label ||
+                            h.textContent.trim().includes(entry.label)) {
+                            element = h;
+                            break;
+                        }
+                    }
+                }
+
+                if (element) {
+                    // Assign the ID if not present
+                    if (!element.id) {
+                        element.id = entry.id;
+                    }
+                    headings.push(element);
+                }
+            });
+
+            return headings;
+        }
+
+        buildNavigationFromManualEntries() {
+            const rootList = document.createElement('ul');
+            rootList.className = 'scrollpath-nav__list';
+
+            // Track the current parent elements for each level
+            const parents = {
+                1: rootList,
+                2: null,
+                3: null,
+                4: null,
+                5: null,
+                6: null,
+            };
+
+            this.manualEntries.forEach((entry, index) => {
+                const element = this.headings[index];
+                if (!element) return;
+
+                const level = entry.level || 2;
+
+                const item = document.createElement('li');
+                item.className = 'scrollpath-nav__item';
+                item.setAttribute('data-level', level);
+                item.setAttribute('data-target', element.id);
+
+                const link = document.createElement('a');
+                link.className = 'scrollpath-nav__link';
+                link.href = `#${element.id}`;
+
+                // Use the custom label from manual entries
+                link.textContent = entry.label;
+
+                item.appendChild(link);
+
+                // For h1 or elements treated as top-level, just append to root
+                if (level === 1) {
+                    rootList.appendChild(item);
+                    parents[1] = rootList;
+                    parents[2] = null;
+                    parents[3] = null;
+                    parents[4] = null;
+                    parents[5] = null;
+                    parents[6] = null;
+                } else if (level === 2) {
+                    // Level 2 - find parent under h1 if exists, otherwise root
+                    const lastH1Item = rootList.querySelector('.scrollpath-nav__item[data-level="1"]:last-of-type');
+
+                    if (lastH1Item) {
+                        let nestedList = lastH1Item.querySelector(':scope > .scrollpath-nav__list');
+                        if (!nestedList) {
+                            nestedList = document.createElement('ul');
+                            nestedList.className = 'scrollpath-nav__list';
+                            lastH1Item.appendChild(nestedList);
+                        }
+                        nestedList.appendChild(item);
+                        parents[2] = nestedList;
+                    } else {
+                        rootList.appendChild(item);
+                        parents[2] = rootList;
+                    }
+                    parents[3] = null;
+                    parents[4] = null;
+                    parents[5] = null;
+                    parents[6] = null;
+                } else {
+                    // For levels 3-6, find parent at level-1
+                    const parentLevel = level - 1;
+                    let targetParent = parents[parentLevel];
+
+                    if (targetParent) {
+                        const lastParentItem = targetParent.querySelector(`.scrollpath-nav__item[data-level="${parentLevel}"]:last-of-type`) ||
+                            targetParent.lastElementChild;
+
+                        if (lastParentItem) {
+                            let nestedList = lastParentItem.querySelector(':scope > .scrollpath-nav__list');
+                            if (!nestedList) {
+                                nestedList = document.createElement('ul');
+                                nestedList.className = 'scrollpath-nav__list';
+                                lastParentItem.appendChild(nestedList);
+                            }
+                            nestedList.appendChild(item);
+                            parents[level] = nestedList;
+                        } else {
+                            targetParent.appendChild(item);
+                        }
+                    } else {
+                        // No parent at expected level, append to root
+                        rootList.appendChild(item);
+                    }
+
+                    // Clear child levels
+                    for (let i = level + 1; i <= 6; i++) {
+                        parents[i] = null;
+                    }
+                }
+            });
+
+            this.container.appendChild(rootList);
+
+            // Build navItems array for path calculation
+            const listItems = this.container.querySelectorAll('.scrollpath-nav__item');
+            this.navItems = [...listItems].map((listItem) => {
+                const anchor = listItem.querySelector('.scrollpath-nav__link');
+                const targetID = anchor.getAttribute('href').slice(1);
+                const target = document.getElementById(targetID);
+
+                return { listItem, anchor, target };
+            }).filter((item) => item.target);
         }
 
 

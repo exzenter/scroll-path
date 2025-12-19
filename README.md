@@ -48,6 +48,17 @@ You can also enable **"Use data-scrollpath-label attribute"** for even more expl
 
 When both are enabled, `data-scrollpath-label` takes priority over `title`.
 
+### Editor Mode (Manual Entry Control)
+
+For complete control over navigation entries, use Editor Mode:
+
+1. Click **"Calculate Navigation"** in the block to scan page headings
+2. **Uncheck** entries to hide them from the navigation
+3. **Rename** labels by editing the text field
+4. Toggle **"Enable Editor Mode"** in the block settings sidebar
+
+> ⚠️ **Note**: When Editor Mode is enabled, changes to page headings will NOT automatically update the navigation. Click **"Recalculate"** to refresh the list manually.
+
 ### Custom Selectors
 
 You can also include elements that aren't headings by adding custom CSS selectors:
