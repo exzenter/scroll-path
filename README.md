@@ -52,7 +52,15 @@ Customize the appearance of the scroll indicator path:
 - **Path Width (px)** - Set the stroke width from 1-10px (default: 3px)
 - **Path Opacity (%)** - Control transparency from 10-100% (default: 100%)
 - **Line Style** - Choose from Solid, Dashed, or Dotted (default: Solid)
-- **Child Indent (px)** - How far to indent nested heading levels (5-50px, default: 20px)
+- **Child Indent (px)** - How far to indent nested heading levels (1-300px, default: 20px)
+- **Corner Radius (px)** - Round the corners of the path (0-50px, default: 0px)
+
+### Typography
+
+Control the text appearance of the navigation:
+
+- **Font Size (px)** - Set the text size (8-32px, default: 14px)
+- **Line Height** - Set the line spacing (1-4, default: 2)
 
 ### Viewport Detection
 

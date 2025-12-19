@@ -49,6 +49,13 @@
             // Read child indent
             this.childIndent = parseInt(container.dataset.childIndent, 10) || 20;
 
+            // Read corner radius
+            this.pathCornerRadius = parseInt(container.dataset.pathCornerRadius, 10) || 0;
+
+            // Read typography settings
+            this.fontSize = parseInt(container.dataset.fontSize, 10) || 14;
+            this.lineHeight = parseFloat(container.dataset.lineHeight) || 2;
+
             this.init();
         }
 
@@ -56,6 +63,10 @@
         init() {
             // Apply child indent CSS variable
             this.container.style.setProperty('--scrollpath-child-indent', `${this.childIndent}px`);
+
+            // Apply typography CSS variables
+            this.container.style.setProperty('--scrollpath-font-size', `${this.fontSize}px`);
+            this.container.style.setProperty('--scrollpath-line-height', this.lineHeight);
 
             // Find all headings on the page (excluding those inside this nav)
             this.headings = this.findHeadings();
@@ -318,6 +329,7 @@
 
             const pathData = [];
             let pathIndent;
+            const radius = this.pathCornerRadius;
 
             this.navItems.forEach((item, i) => {
                 const x = item.anchor.offsetLeft - 5;
@@ -329,10 +341,27 @@
                     item.pathStart = 0;
                 } else {
                     if (pathIndent !== x) {
-                        pathData.push('L', pathIndent, y);
+                        // Need to draw a corner from previous indent to current
+                        if (radius > 0) {
+                            // Draw line up to corner start point
+                            const cornerY = y - radius;
+                            if (cornerY > (this.navItems[i - 1].anchor.offsetTop + this.navItems[i - 1].anchor.offsetHeight)) {
+                                pathData.push('L', pathIndent, cornerY);
+                            }
+                            // Draw arc/quadratic curve to the new x position
+                            if (x > pathIndent) {
+                                // Moving right - arc goes right
+                                pathData.push('Q', pathIndent, y, Math.min(pathIndent + radius, x), y);
+                            } else {
+                                // Moving left - arc goes left
+                                pathData.push('Q', pathIndent, y, Math.max(pathIndent - radius, x), y);
+                            }
+                            pathData.push('L', x, y);
+                        } else {
+                            pathData.push('L', pathIndent, y);
+                            pathData.push('L', x, y);
+                        }
                     }
-
-                    pathData.push('L', x, y);
 
                     this.navPath.setAttribute('d', pathData.join(' '));
                     item.pathStart = this.navPath.getTotalLength() || 0;
@@ -400,10 +429,17 @@
             // which sections are visible based on the content between headings
             this.sectionBounds = this.calculateSectionBounds();
 
-            // Use scroll event for section-based detection
-            this.handleSectionScroll = this.debounce(() => {
-                this.updateSectionVisibility();
-            }, 10);
+            // Use scroll event for section-based detection with requestAnimationFrame for smooth updates
+            let ticking = false;
+            this.handleSectionScroll = () => {
+                if (!ticking) {
+                    requestAnimationFrame(() => {
+                        this.updateSectionVisibility();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            };
 
             window.addEventListener('scroll', this.handleSectionScroll, { passive: true });
 

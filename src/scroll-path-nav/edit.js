@@ -18,6 +18,9 @@ export default function Edit({ attributes, setAttributes }) {
         pathOpacity,
         pathLineStyle,
         childIndent,
+        pathCornerRadius,
+        fontSize,
+        lineHeight,
     } = attributes;
 
     const blockProps = useBlockProps({
@@ -127,9 +130,36 @@ export default function Edit({ attributes, setAttributes }) {
                         help="How far to indent nested heading levels"
                         value={childIndent}
                         onChange={(value) => setAttributes({ childIndent: value })}
-                        min={5}
+                        min={1}
+                        max={300}
+                        step={1}
+                    />
+                    <RangeControl
+                        label="Corner Radius (px)"
+                        help="Round the corners of the path"
+                        value={pathCornerRadius}
+                        onChange={(value) => setAttributes({ pathCornerRadius: value })}
+                        min={0}
                         max={50}
-                        step={5}
+                        step={1}
+                    />
+                </PanelBody>
+                <PanelBody title="Typography" initialOpen={false}>
+                    <RangeControl
+                        label="Font Size (px)"
+                        value={fontSize}
+                        onChange={(value) => setAttributes({ fontSize: value })}
+                        min={8}
+                        max={32}
+                        step={1}
+                    />
+                    <RangeControl
+                        label="Line Height"
+                        value={lineHeight}
+                        onChange={(value) => setAttributes({ lineHeight: value })}
+                        min={1}
+                        max={4}
+                        step={0.1}
                     />
                 </PanelBody>
                 <PanelBody title="Viewport Detection" initialOpen={false}>

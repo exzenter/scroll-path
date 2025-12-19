@@ -17,6 +17,9 @@ export default function save({ attributes }) {
         pathOpacity,
         pathLineStyle,
         childIndent,
+        pathCornerRadius,
+        fontSize,
+        lineHeight,
     } = attributes;
 
     // Build heading selector from enabled levels
@@ -40,6 +43,9 @@ export default function save({ attributes }) {
         'data-path-opacity': pathOpacity ?? 100,
         'data-path-line-style': pathLineStyle || 'solid',
         'data-child-indent': childIndent ?? 20,
+        'data-path-corner-radius': pathCornerRadius ?? 0,
+        'data-font-size': fontSize ?? 14,
+        'data-line-height': lineHeight ?? 2,
     });
 
     return (

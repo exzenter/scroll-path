@@ -11,8 +11,8 @@
 /* Main navigation container */
 .scrollpath-nav {
     position: relative;
-    line-height: var(--scrollpath-line-height);
-    font-size: 14px;
+    line-height: var(--scrollpath-line-height, 2);
+    font-size: var(--scrollpath-font-size, 14px);
 }
 
 /* Navigation list styles */

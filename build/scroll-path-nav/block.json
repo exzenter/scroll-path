@@ -75,6 +75,18 @@
     "childIndent": {
       "type": "number",
       "default": 20
+    },
+    "pathCornerRadius": {
+      "type": "number",
+      "default": 0
+    },
+    "fontSize": {
+      "type": "number",
+      "default": 14
+    },
+    "lineHeight": {
+      "type": "number",
+      "default": 2
     }
   },
   "supports": {
