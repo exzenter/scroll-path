@@ -21,6 +21,7 @@ export default function Edit({ attributes, setAttributes }) {
         pathCornerRadius,
         fontSize,
         lineHeight,
+        useTitleAttribute,
     } = attributes;
 
     const blockProps = useBlockProps({
@@ -76,6 +77,13 @@ export default function Edit({ attributes, setAttributes }) {
                         label="H6"
                         checked={includeH6}
                         onChange={(value) => setAttributes({ includeH6: value })}
+                    />
+                    <hr style={{ margin: '16px 0' }} />
+                    <CheckboxControl
+                        label="Use title attribute as label"
+                        help="When enabled, if a heading has a title attribute, it will be used as the navigation label instead of the full heading text."
+                        checked={useTitleAttribute}
+                        onChange={(value) => setAttributes({ useTitleAttribute: value })}
                     />
                 </PanelBody>
                 <PanelBody title="Custom Selectors" initialOpen={false}>

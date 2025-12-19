@@ -56,6 +56,9 @@
             this.fontSize = parseInt(container.dataset.fontSize, 10) || 14;
             this.lineHeight = parseFloat(container.dataset.lineHeight) || 2;
 
+            // Read use title attribute setting
+            this.useTitleAttribute = container.dataset.useTitleAttribute === 'true';
+
             this.init();
         }
 
@@ -213,7 +216,13 @@
                 const link = document.createElement('a');
                 link.className = 'scrollpath-nav__link';
                 link.href = `#${element.id}`;
-                link.textContent = element.textContent;
+
+                // Use title attribute if enabled and available, otherwise use full text
+                if (this.useTitleAttribute && element.getAttribute('title')) {
+                    link.textContent = element.getAttribute('title');
+                } else {
+                    link.textContent = element.textContent;
+                }
 
                 item.appendChild(link);
 

@@ -87,6 +87,10 @@
     "lineHeight": {
       "type": "number",
       "default": 2
+    },
+    "useTitleAttribute": {
+      "type": "boolean",
+      "default": false
     }
   },
   "supports": {

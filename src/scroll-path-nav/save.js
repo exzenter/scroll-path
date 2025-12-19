@@ -20,6 +20,7 @@ export default function save({ attributes }) {
         pathCornerRadius,
         fontSize,
         lineHeight,
+        useTitleAttribute,
     } = attributes;
 
     // Build heading selector from enabled levels
@@ -46,6 +47,7 @@ export default function save({ attributes }) {
         'data-path-corner-radius': pathCornerRadius ?? 0,
         'data-font-size': fontSize ?? 14,
         'data-line-height': lineHeight ?? 2,
+        'data-use-title-attribute': useTitleAttribute ? 'true' : 'false',
     });
 
     return (

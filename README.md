@@ -34,6 +34,12 @@ In the block settings sidebar, you can toggle which heading levels to include:
 - **H5** - Off by default
 - **H6** - Off by default
 
+You can also enable **"Use title attribute as label"** to use shorter custom labels. When enabled, if a heading has a `title` attribute, that text will be used in the navigation instead of the full heading text:
+
+```html
+<h2 title="Short Label">This Is A Very Long Heading Title</h2>
+```
+
 ### Custom Selectors
 
 You can also include elements that aren't headings by adding custom CSS selectors:
