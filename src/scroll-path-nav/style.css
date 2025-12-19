@@ -23,7 +23,7 @@
 }
 
 .scrollpath-nav__list .scrollpath-nav__list {
-    padding-left: 20px;
+    padding-left: var(--scrollpath-child-indent, 20px);
 }
 
 /* Navigation items */

@@ -44,10 +44,23 @@ You can also include elements that aren't headings by adding custom CSS selector
 
 This will include any elements matching those selectors in the navigation.
 
+### Path Styling
+
+Customize the appearance of the scroll indicator path:
+
+- **Path Color** - Choose any color for the indicator path (default: #91cb3e)
+- **Path Width (px)** - Set the stroke width from 1-10px (default: 3px)
+- **Path Opacity (%)** - Control transparency from 10-100% (default: 100%)
+- **Line Style** - Choose from Solid, Dashed, or Dotted (default: Solid)
+- **Child Indent (px)** - How far to indent nested heading levels (5-50px, default: 20px)
+
 ### Viewport Detection
 
 Fine-tune how the scroll spy detects which headings are currently visible:
 
+- **Section-based detection** - When enabled, each heading "owns" all content until the next heading. The indicator spans based on section visibility, not just heading visibility. This is more accurate for longer pages.
+
+When section-based detection is disabled:
 - **Top Margin (%)** - Percentage of viewport to exclude from the top (0-50%, default: 10%)
 - **Bottom Margin (%)** - Percentage of viewport to exclude from the bottom (0-50%, default: 10%)
 

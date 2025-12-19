@@ -11,6 +11,12 @@ export default function save({ attributes }) {
         customSelectors,
         viewportTopMargin,
         viewportBottomMargin,
+        sectionBasedDetection,
+        pathColor,
+        pathWidth,
+        pathOpacity,
+        pathLineStyle,
+        childIndent,
     } = attributes;
 
     // Build heading selector from enabled levels
@@ -28,6 +34,12 @@ export default function save({ attributes }) {
         'data-custom-selectors': customSelectors || '',
         'data-viewport-top-margin': viewportTopMargin ?? 10,
         'data-viewport-bottom-margin': viewportBottomMargin ?? 10,
+        'data-section-based-detection': sectionBasedDetection ? 'true' : 'false',
+        'data-path-color': pathColor || '#91cb3e',
+        'data-path-width': pathWidth ?? 3,
+        'data-path-opacity': pathOpacity ?? 100,
+        'data-path-line-style': pathLineStyle || 'solid',
+        'data-child-indent': childIndent ?? 20,
     });
 
     return (

@@ -51,6 +51,30 @@
         "viewportBottomMargin": {
             "type": "number",
             "default": 10
+        },
+        "sectionBasedDetection": {
+            "type": "boolean",
+            "default": false
+        },
+        "pathColor": {
+            "type": "string",
+            "default": "#91cb3e"
+        },
+        "pathWidth": {
+            "type": "number",
+            "default": 3
+        },
+        "pathOpacity": {
+            "type": "number",
+            "default": 100
+        },
+        "pathLineStyle": {
+            "type": "string",
+            "default": "solid"
+        },
+        "childIndent": {
+            "type": "number",
+            "default": 20
         }
     },
     "supports": {

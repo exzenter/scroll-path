@@ -24,6 +24,7 @@
             this.navItems = [];
             this.navPath = null;
             this.observer = null;
+            this.headings = [];
 
             // Read heading levels from data attribute
             const headingLevelsAttr = container.dataset.headingLevels || 'h2,h3,h4';
@@ -36,24 +37,39 @@
             this.viewportTopMargin = parseInt(container.dataset.viewportTopMargin, 10) || 10;
             this.viewportBottomMargin = parseInt(container.dataset.viewportBottomMargin, 10) || 10;
 
+            // Read section-based detection mode
+            this.sectionBasedDetection = container.dataset.sectionBasedDetection === 'true';
+
+            // Read path styling options
+            this.pathColor = container.dataset.pathColor || '#91cb3e';
+            this.pathWidth = parseInt(container.dataset.pathWidth, 10) || 3;
+            this.pathOpacity = parseInt(container.dataset.pathOpacity, 10) || 100;
+            this.pathLineStyle = container.dataset.pathLineStyle || 'solid';
+
+            // Read child indent
+            this.childIndent = parseInt(container.dataset.childIndent, 10) || 20;
+
             this.init();
         }
 
 
         init() {
-            // Find all headings on the page (excluding those inside this nav)
-            const headings = this.findHeadings();
+            // Apply child indent CSS variable
+            this.container.style.setProperty('--scrollpath-child-indent', `${this.childIndent}px`);
 
-            if (headings.length === 0) {
+            // Find all headings on the page (excluding those inside this nav)
+            this.headings = this.findHeadings();
+
+            if (this.headings.length === 0) {
                 this.container.innerHTML = '<p class="scrollpath-nav__empty">No headings found on this page.</p>';
                 return;
             }
 
             // Ensure all headings have IDs
-            this.ensureHeadingIds(headings);
+            this.ensureHeadingIds(this.headings);
 
             // Build the navigation structure
-            this.buildNavigation(headings);
+            this.buildNavigation(this.headings);
 
             // Setup the SVG path
             this.setupSvgPath();
@@ -61,8 +77,12 @@
             // Draw the initial path
             this.drawPath();
 
-            // Setup intersection observer
-            this.setupObserver(headings);
+            // Setup detection (either section-based or intersection observer)
+            if (this.sectionBasedDetection) {
+                this.setupSectionBasedDetection();
+            } else {
+                this.setupObserver(this.headings);
+            }
 
             // Redraw path on resize
             window.addEventListener('resize', this.debounce(() => this.drawPath(), 100));
@@ -273,6 +293,18 @@
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('class', 'scrollpath-nav__path');
 
+            // Apply custom path styling
+            path.style.stroke = this.pathColor;
+            path.style.strokeWidth = `${this.pathWidth}px`;
+            path.style.opacity = this.pathOpacity / 100;
+
+            // Apply line style
+            if (this.pathLineStyle === 'dashed') {
+                path.style.strokeDasharray = '8 4';
+            } else if (this.pathLineStyle === 'dotted') {
+                path.style.strokeDasharray = '2 4';
+            }
+
             svg.appendChild(path);
             this.container.appendChild(svg);
 
@@ -333,14 +365,108 @@
             });
 
             if (someElsAreVisible() && pathStart < pathEnd) {
-                const dashArray = `1 ${pathStart} ${pathEnd - pathStart} ${pathLength}`;
-
-                this.navPath.style.setProperty('stroke-dashoffset', '1');
-                this.navPath.style.setProperty('stroke-dasharray', dashArray);
-                this.navPath.style.setProperty('opacity', '1');
+                // For non-solid line styles, we need a different approach
+                if (this.pathLineStyle === 'solid') {
+                    const dashArray = `1 ${pathStart} ${pathEnd - pathStart} ${pathLength}`;
+                    this.navPath.style.setProperty('stroke-dashoffset', '1');
+                    this.navPath.style.setProperty('stroke-dasharray', dashArray);
+                } else {
+                    // For dashed/dotted, use clip-path or mask approach
+                    // We'll use a gradient mask approach via CSS
+                    const startPercent = (pathStart / pathLength) * 100;
+                    const endPercent = (pathEnd / pathLength) * 100;
+                    this.navPath.style.setProperty('--path-start', `${startPercent}%`);
+                    this.navPath.style.setProperty('--path-end', `${endPercent}%`);
+                    // Reset dasharray to the line style
+                    if (this.pathLineStyle === 'dashed') {
+                        this.navPath.style.setProperty('stroke-dasharray', '8 4');
+                    } else if (this.pathLineStyle === 'dotted') {
+                        this.navPath.style.setProperty('stroke-dasharray', '2 4');
+                    }
+                    this.navPath.style.setProperty('stroke-dashoffset', `-${pathStart}`);
+                    // Clip the visible portion
+                    const visibleLength = pathEnd - pathStart;
+                    this.navPath.style.setProperty('stroke-dasharray',
+                        this.pathLineStyle === 'dashed' ? `8 4` : `2 4`);
+                }
+                this.navPath.style.setProperty('opacity', String(this.pathOpacity / 100));
             } else {
                 this.navPath.style.setProperty('opacity', '0');
             }
+        }
+
+        setupSectionBasedDetection() {
+            // For section-based detection, we track scroll position and determine
+            // which sections are visible based on the content between headings
+            this.sectionBounds = this.calculateSectionBounds();
+
+            // Use scroll event for section-based detection
+            this.handleSectionScroll = this.debounce(() => {
+                this.updateSectionVisibility();
+            }, 10);
+
+            window.addEventListener('scroll', this.handleSectionScroll, { passive: true });
+
+            // Initial update
+            this.updateSectionVisibility();
+        }
+
+        calculateSectionBounds() {
+            const bounds = [];
+            const headings = this.headings;
+
+            for (let i = 0; i < headings.length; i++) {
+                const heading = headings[i];
+                const nextHeading = headings[i + 1];
+
+                // Section starts at the heading
+                const start = heading.getBoundingClientRect().top + window.scrollY;
+
+                // Section ends at the next heading (or end of document)
+                let end;
+                if (nextHeading) {
+                    end = nextHeading.getBoundingClientRect().top + window.scrollY;
+                } else {
+                    // Last section extends to the bottom of the document
+                    end = document.documentElement.scrollHeight;
+                }
+
+                bounds.push({
+                    id: heading.id,
+                    start: start,
+                    end: end
+                });
+            }
+
+            return bounds;
+        }
+
+        updateSectionVisibility() {
+            // Recalculate bounds on each scroll (elements may have changed position)
+            this.sectionBounds = this.calculateSectionBounds();
+
+            const viewportTop = window.scrollY;
+            const viewportBottom = window.scrollY + window.innerHeight;
+
+            // Clear all visible states
+            this.navItems.forEach(item => {
+                item.listItem.classList.remove(this.visibleClass);
+            });
+
+            // Mark sections that overlap with the viewport as visible
+            this.sectionBounds.forEach(section => {
+                // Check if section overlaps with viewport
+                const sectionIsVisible = section.start < viewportBottom && section.end > viewportTop;
+
+                if (sectionIsVisible) {
+                    const navItem = this.container.querySelector(`.scrollpath-nav__item[data-target="${section.id}"]`);
+                    if (navItem) {
+                        navItem.classList.add(this.visibleClass);
+                    }
+                }
+            });
+
+            this.syncPath();
         }
 
         setupObserver(headings) {

@@ -1,5 +1,5 @@
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, CheckboxControl, TextControl, RangeControl, Icon } from '@wordpress/components';
+import { PanelBody, CheckboxControl, TextControl, RangeControl, SelectControl, ColorPicker, Icon } from '@wordpress/components';
 
 export default function Edit({ attributes, setAttributes }) {
     const {
@@ -12,6 +12,12 @@ export default function Edit({ attributes, setAttributes }) {
         customSelectors,
         viewportTopMargin,
         viewportBottomMargin,
+        sectionBasedDetection,
+        pathColor,
+        pathWidth,
+        pathOpacity,
+        pathLineStyle,
+        childIndent,
     } = attributes;
 
     const blockProps = useBlockProps({
@@ -69,7 +75,7 @@ export default function Edit({ attributes, setAttributes }) {
                         onChange={(value) => setAttributes({ includeH6: value })}
                     />
                 </PanelBody>
-                <PanelBody title="Custom Selectors" initialOpen={true}>
+                <PanelBody title="Custom Selectors" initialOpen={false}>
                     <TextControl
                         label="Additional Selectors"
                         help="Enter CSS selectors (class names or IDs) to include in the navigation. Separate multiple selectors with commas. Example: .my-section, #intro, .custom-heading"
@@ -78,28 +84,86 @@ export default function Edit({ attributes, setAttributes }) {
                         placeholder=".my-class, #my-id"
                     />
                 </PanelBody>
-                <PanelBody title="Viewport Detection" initialOpen={false}>
+                <PanelBody title="Path Styling" initialOpen={true}>
                     <p style={{ marginBottom: '12px', color: '#757575', fontSize: '12px' }}>
-                        Adjust how the scroll spy detects visible headings. Higher values create smaller detection zones.
+                        Customize the appearance of the scroll indicator path.
                     </p>
+                    <div style={{ marginBottom: '16px' }}>
+                        <p style={{ marginBottom: '8px', fontWeight: '500' }}>Path Color</p>
+                        <ColorPicker
+                            color={pathColor}
+                            onChange={(value) => setAttributes({ pathColor: value })}
+                            enableAlpha={false}
+                        />
+                    </div>
                     <RangeControl
-                        label="Top Margin (%)"
-                        help="Percentage of viewport to exclude from top"
-                        value={viewportTopMargin}
-                        onChange={(value) => setAttributes({ viewportTopMargin: value })}
-                        min={0}
+                        label="Path Width (px)"
+                        value={pathWidth}
+                        onChange={(value) => setAttributes({ pathWidth: value })}
+                        min={1}
+                        max={10}
+                        step={1}
+                    />
+                    <RangeControl
+                        label="Path Opacity (%)"
+                        value={pathOpacity}
+                        onChange={(value) => setAttributes({ pathOpacity: value })}
+                        min={10}
+                        max={100}
+                        step={5}
+                    />
+                    <SelectControl
+                        label="Line Style"
+                        value={pathLineStyle}
+                        options={[
+                            { label: 'Solid', value: 'solid' },
+                            { label: 'Dashed', value: 'dashed' },
+                            { label: 'Dotted', value: 'dotted' },
+                        ]}
+                        onChange={(value) => setAttributes({ pathLineStyle: value })}
+                    />
+                    <RangeControl
+                        label="Child Indent (px)"
+                        help="How far to indent nested heading levels"
+                        value={childIndent}
+                        onChange={(value) => setAttributes({ childIndent: value })}
+                        min={5}
                         max={50}
                         step={5}
                     />
-                    <RangeControl
-                        label="Bottom Margin (%)"
-                        help="Percentage of viewport to exclude from bottom"
-                        value={viewportBottomMargin}
-                        onChange={(value) => setAttributes({ viewportBottomMargin: value })}
-                        min={0}
-                        max={50}
-                        step={5}
+                </PanelBody>
+                <PanelBody title="Viewport Detection" initialOpen={false}>
+                    <CheckboxControl
+                        label="Section-based detection"
+                        help="When enabled, each heading 'owns' all content until the next heading. The indicator spans based on section visibility, not just heading visibility."
+                        checked={sectionBasedDetection}
+                        onChange={(value) => setAttributes({ sectionBasedDetection: value })}
                     />
+                    {!sectionBasedDetection && (
+                        <>
+                            <p style={{ marginTop: '16px', marginBottom: '12px', color: '#757575', fontSize: '12px' }}>
+                                Adjust how the scroll spy detects visible headings. Higher values create smaller detection zones.
+                            </p>
+                            <RangeControl
+                                label="Top Margin (%)"
+                                help="Percentage of viewport to exclude from top"
+                                value={viewportTopMargin}
+                                onChange={(value) => setAttributes({ viewportTopMargin: value })}
+                                min={0}
+                                max={50}
+                                step={5}
+                            />
+                            <RangeControl
+                                label="Bottom Margin (%)"
+                                help="Percentage of viewport to exclude from bottom"
+                                value={viewportBottomMargin}
+                                onChange={(value) => setAttributes({ viewportBottomMargin: value })}
+                                min={0}
+                                max={50}
+                                step={5}
+                            />
+                        </>
+                    )}
                 </PanelBody>
             </InspectorControls>
             <div {...blockProps}>
