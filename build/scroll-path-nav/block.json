@@ -43,6 +43,14 @@
     "customSelectors": {
       "type": "string",
       "default": ""
+    },
+    "viewportTopMargin": {
+      "type": "number",
+      "default": 10
+    },
+    "viewportBottomMargin": {
+      "type": "number",
+      "default": 10
     }
   },
   "supports": {

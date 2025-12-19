@@ -9,6 +9,8 @@ export default function save({ attributes }) {
         includeH5,
         includeH6,
         customSelectors,
+        viewportTopMargin,
+        viewportBottomMargin,
     } = attributes;
 
     // Build heading selector from enabled levels
@@ -24,6 +26,8 @@ export default function save({ attributes }) {
         className: 'scrollpath-nav',
         'data-heading-levels': headingLevels.join(','),
         'data-custom-selectors': customSelectors || '',
+        'data-viewport-top-margin': viewportTopMargin ?? 10,
+        'data-viewport-bottom-margin': viewportBottomMargin ?? 10,
     });
 
     return (

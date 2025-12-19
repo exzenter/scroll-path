@@ -32,6 +32,10 @@
             // Read custom selectors from data attribute
             this.customSelectors = container.dataset.customSelectors || '';
 
+            // Read viewport margin settings from data attributes
+            this.viewportTopMargin = parseInt(container.dataset.viewportTopMargin, 10) || 10;
+            this.viewportBottomMargin = parseInt(container.dataset.viewportBottomMargin, 10) || 10;
+
             this.init();
         }
 
@@ -347,10 +351,13 @@
             });
 
             // Create intersection observer
+            // Build rootMargin from configured values
+            const rootMargin = `-${this.viewportTopMargin}% 0px -${this.viewportBottomMargin}% 0px`;
+
             this.observer = new IntersectionObserver(
                 (entries) => this.handleIntersection(entries),
                 {
-                    rootMargin: '-10% 0px -70% 0px', // Trigger when heading is in top 20-30% of viewport
+                    rootMargin: rootMargin,
                     threshold: 0,
                 }
             );

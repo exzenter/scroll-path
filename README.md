@@ -44,6 +44,16 @@ You can also include elements that aren't headings by adding custom CSS selector
 
 This will include any elements matching those selectors in the navigation.
 
+### Viewport Detection
+
+Fine-tune how the scroll spy detects which headings are currently visible:
+
+- **Top Margin (%)** - Percentage of viewport to exclude from the top (0-50%, default: 10%)
+- **Bottom Margin (%)** - Percentage of viewport to exclude from the bottom (0-50%, default: 10%)
+
+Lower values = more items highlighted (larger detection zone)  
+Higher values = fewer items highlighted (smaller detection zone)
+
 ## Styling
 
 The navigation can be styled using the following CSS classes:

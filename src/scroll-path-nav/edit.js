@@ -1,5 +1,5 @@
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, CheckboxControl, TextControl, Icon } from '@wordpress/components';
+import { PanelBody, CheckboxControl, TextControl, RangeControl, Icon } from '@wordpress/components';
 
 export default function Edit({ attributes, setAttributes }) {
     const {
@@ -10,6 +10,8 @@ export default function Edit({ attributes, setAttributes }) {
         includeH5,
         includeH6,
         customSelectors,
+        viewportTopMargin,
+        viewportBottomMargin,
     } = attributes;
 
     const blockProps = useBlockProps({
@@ -74,6 +76,29 @@ export default function Edit({ attributes, setAttributes }) {
                         value={customSelectors}
                         onChange={(value) => setAttributes({ customSelectors: value })}
                         placeholder=".my-class, #my-id"
+                    />
+                </PanelBody>
+                <PanelBody title="Viewport Detection" initialOpen={false}>
+                    <p style={{ marginBottom: '12px', color: '#757575', fontSize: '12px' }}>
+                        Adjust how the scroll spy detects visible headings. Higher values create smaller detection zones.
+                    </p>
+                    <RangeControl
+                        label="Top Margin (%)"
+                        help="Percentage of viewport to exclude from top"
+                        value={viewportTopMargin}
+                        onChange={(value) => setAttributes({ viewportTopMargin: value })}
+                        min={0}
+                        max={50}
+                        step={5}
+                    />
+                    <RangeControl
+                        label="Bottom Margin (%)"
+                        help="Percentage of viewport to exclude from bottom"
+                        value={viewportBottomMargin}
+                        onChange={(value) => setAttributes({ viewportBottomMargin: value })}
+                        min={0}
+                        max={50}
+                        step={5}
                     />
                 </PanelBody>
             </InspectorControls>
