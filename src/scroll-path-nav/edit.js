@@ -22,6 +22,7 @@ export default function Edit({ attributes, setAttributes }) {
         fontSize,
         lineHeight,
         useTitleAttribute,
+        useCustomLabel,
     } = attributes;
 
     const blockProps = useBlockProps({
@@ -84,6 +85,12 @@ export default function Edit({ attributes, setAttributes }) {
                         help="When enabled, if a heading has a title attribute, it will be used as the navigation label instead of the full heading text."
                         checked={useTitleAttribute}
                         onChange={(value) => setAttributes({ useTitleAttribute: value })}
+                    />
+                    <CheckboxControl
+                        label="Use data-scrollpath-label attribute"
+                        help="When enabled, if a heading has a data-scrollpath-label attribute, it will be used as the navigation label."
+                        checked={useCustomLabel}
+                        onChange={(value) => setAttributes({ useCustomLabel: value })}
                     />
                 </PanelBody>
                 <PanelBody title="Custom Selectors" initialOpen={false}>

@@ -91,6 +91,10 @@
     "useTitleAttribute": {
       "type": "boolean",
       "default": false
+    },
+    "useCustomLabel": {
+      "type": "boolean",
+      "default": false
     }
   },
   "supports": {

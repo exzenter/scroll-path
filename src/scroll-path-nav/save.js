@@ -21,6 +21,7 @@ export default function save({ attributes }) {
         fontSize,
         lineHeight,
         useTitleAttribute,
+        useCustomLabel,
     } = attributes;
 
     // Build heading selector from enabled levels
@@ -48,6 +49,7 @@ export default function save({ attributes }) {
         'data-font-size': fontSize ?? 14,
         'data-line-height': lineHeight ?? 2,
         'data-use-title-attribute': useTitleAttribute ? 'true' : 'false',
+        'data-use-custom-label': useCustomLabel ? 'true' : 'false',
     });
 
     return (

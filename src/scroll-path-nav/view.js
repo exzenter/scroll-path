@@ -59,6 +59,9 @@
             // Read use title attribute setting
             this.useTitleAttribute = container.dataset.useTitleAttribute === 'true';
 
+            // Read use custom label setting
+            this.useCustomLabel = container.dataset.useCustomLabel === 'true';
+
             this.init();
         }
 
@@ -217,12 +220,16 @@
                 link.className = 'scrollpath-nav__link';
                 link.href = `#${element.id}`;
 
-                // Use title attribute if enabled and available, otherwise use full text
-                if (this.useTitleAttribute && element.getAttribute('title')) {
-                    link.textContent = element.getAttribute('title');
-                } else {
-                    link.textContent = element.textContent;
+                // Determine the label: custom label > title attribute > full text
+                let labelText = element.textContent;
+
+                if (this.useCustomLabel && element.dataset.scrollpathLabel) {
+                    labelText = element.dataset.scrollpathLabel;
+                } else if (this.useTitleAttribute && element.getAttribute('title')) {
+                    labelText = element.getAttribute('title');
                 }
+
+                link.textContent = labelText;
 
                 item.appendChild(link);
 

@@ -40,6 +40,14 @@ You can also enable **"Use title attribute as label"** to use shorter custom lab
 <h2 title="Short Label">This Is A Very Long Heading Title</h2>
 ```
 
+You can also enable **"Use data-scrollpath-label attribute"** for even more explicit control:
+
+```html
+<h2 data-scrollpath-label="Custom Nav Label">This Is A Very Long Heading Title</h2>
+```
+
+When both are enabled, `data-scrollpath-label` takes priority over `title`.
+
 ### Custom Selectors
 
 You can also include elements that aren't headings by adding custom CSS selectors:
