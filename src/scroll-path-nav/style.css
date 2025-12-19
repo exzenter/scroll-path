@@ -1,0 +1,87 @@
+/* Scroll Path Nav - Frontend Styles */
+/* All classes prefixed with scrollpath- to avoid conflicts with WordPress core navigation */
+
+:root {
+    --scrollpath-highlight: #91cb3e;
+    --scrollpath-text: #7f7f7f;
+    --scrollpath-text-active: #222;
+    --scrollpath-line-height: 2;
+}
+
+/* Main navigation container */
+.scrollpath-nav {
+    position: relative;
+    line-height: var(--scrollpath-line-height);
+    font-size: 14px;
+}
+
+/* Navigation list styles */
+.scrollpath-nav__list {
+    margin: 0;
+    padding-left: 10px;
+    list-style: none;
+}
+
+.scrollpath-nav__list .scrollpath-nav__list {
+    padding-left: 20px;
+}
+
+/* Navigation items */
+.scrollpath-nav__item {
+    margin: 0;
+    padding: 0;
+}
+
+/* Navigation links */
+.scrollpath-nav__link {
+    display: inline-block;
+    color: var(--scrollpath-text);
+    text-decoration: none;
+    transition: all 300ms ease-in-out;
+    padding: 2px 0;
+}
+
+.scrollpath-nav__link:hover {
+    color: var(--scrollpath-text-active);
+}
+
+.scrollpath-nav__item--visible>.scrollpath-nav__link {
+    color: var(--scrollpath-text-active);
+    transform: translateX(5px);
+}
+
+/* SVG path container */
+.scrollpath-nav__svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* SVG path stroke animation */
+.scrollpath-nav__path {
+    transition: all 300ms ease;
+    fill: transparent;
+    stroke: var(--scrollpath-highlight);
+    stroke-width: 3px;
+    stroke-dasharray: 0 0 0 1000;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Heading level indicators (optional visual distinction) */
+.scrollpath-nav__item[data-level="2"]>.scrollpath-nav__link {
+    font-weight: 600;
+}
+
+.scrollpath-nav__item[data-level="3"]>.scrollpath-nav__link {
+    font-weight: 400;
+}
+
+.scrollpath-nav__item[data-level="4"]>.scrollpath-nav__link {
+    font-weight: 400;
+    font-size: 0.9em;
+}

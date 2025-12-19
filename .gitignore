@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output (optional - can include if you want built files in repo)
+# build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Package lock (optional)
+# package-lock.json
+node_modules

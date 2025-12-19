@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "scrollpath/nav",
+    "version": "1.0.0",
+    "title": "Scroll Path Nav",
+    "category": "widgets",
+    "icon": "list-view",
+    "description": "Auto-detects headings and creates an animated SVG scroll path navigation.",
+    "keywords": [
+        "navigation",
+        "scroll",
+        "toc",
+        "table of contents",
+        "headings"
+    ],
+    "supports": {
+        "html": false,
+        "align": [
+            "left",
+            "right"
+        ],
+        "spacing": {
+            "margin": true,
+            "padding": true
+        }
+    },
+    "textdomain": "scrollpath",
+    "editorScript": "file:./index.js",
+    "editorStyle": "file:./index.css",
+    "style": "file:./style-index.css",
+    "viewScript": "file:./view.js"
+}

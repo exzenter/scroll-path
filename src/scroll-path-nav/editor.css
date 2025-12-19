@@ -1,0 +1,42 @@
+.scrollpath-nav-editor {
+    padding: 20px;
+    background: #f0f0f0;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+}
+
+.scrollpath-nav-editor__placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    color: #1e1e1e;
+}
+
+.scrollpath-nav-editor__placeholder .components-icon {
+    color: #007cba;
+    margin-bottom: 12px;
+}
+
+.scrollpath-nav-editor__placeholder h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.scrollpath-nav-editor__placeholder p {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #555;
+    max-width: 280px;
+}
+
+.scrollpath-nav-editor__placeholder strong {
+    color: #007cba;
+}
+
+.scrollpath-nav-editor__hint {
+    font-style: italic;
+    color: #888 !important;
+    font-size: 12px !important;
+}

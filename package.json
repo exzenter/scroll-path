@@ -1,0 +1,19 @@
+{
+    "name": "scrollpath",
+    "version": "1.0.0",
+    "description": "Scroll Path Nav WordPress Plugin",
+    "author": "Your Name",
+    "license": "GPL-2.0-or-later",
+    "main": "build/index.js",
+    "scripts": {
+        "build": "wp-scripts build --webpack-src-dir=src",
+        "start": "wp-scripts start --webpack-src-dir=src",
+        "packages-update": "wp-scripts packages-update"
+    },
+    "devDependencies": {
+        "@wordpress/scripts": "^28.0.0"
+    },
+    "dependencies": {
+        "@babel/runtime": "^7.28.4"
+    }
+}
